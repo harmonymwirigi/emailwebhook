@@ -1,0 +1,8 @@
+[
+  {
+    "name": "Reservas 24H",
+    "prompt": "Mails relacionados con viajes, vuelos, cambios,cancelaciones, hoteles,coches o maletas recibidos desde las 19:00 hasta las 08:00 para el mismo día o hasta dos días siguiente a la fecha de recepción del email lo clasificamos en la etiqueta Reservas 24H",
+    "autoReply": false,
+    "replyText": "esto es una reserva"
+  }
+]

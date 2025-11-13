@@ -1,0 +1,181 @@
+[WEBHOOK] Notificacion de MS Graph recibida: {'value': [{'subscriptionId': 'b1cec616-1706-4bf4-a106-02a1616257b6', 'subscriptionExpirationDateTime': '2025-11-16T17:35:16.753492+00:00', 'changeType': 'created', 'resource': 'Users/49f0ff1b0c767da6/Messages/AQMkADAwATMwMAExLTk0OWMtZGJjOC0wMAItMDAKAEYAAANMFz917tgUS5hQ_O_FYTfiBwCfq8h3OldoS77fYdQSgqBbAAACAQwAAACfq8h3OldoS77fYdQSgqBbAAAAdx3LZQAAAA==', 'resourceData': {'@odata.type': '#Microsoft.Graph.Message', '@odata.id': 'Users/49f0ff1b0c767da6/Messages/AQMkADAwATMwMAExLTk0OWMtZGJjOC0wMAItMDAKA
+[WEBHOOK] Nuevo email creado (ID: AQMkADAwATMwMAExLTk0OWMtZGJjOC0wMAItMDAKAEYAAANMFz...) para suscripcion b1cec616-1706-4bf4-a106-02a1616257b6...
+[WEBHOOK] ===== EMAIL RECIBIDO =====
+[WEBHOOK] Cuenta: tonirodriguezolivera@outlook.es
+[WEBHOOK] Email ID: AQMkADAwATMwMAExLTk0OWMtZGJjOC0wMAItMDAKAEYAAANMFz...
+[WEBHOOK] De: tonirodriguezolivera@gmail.com
+[WEBHOOK] Asunto: Sin asunto
+[WEBHOOK] Cuerpo (primeros 200 chars): 
+...
+[WEBHOOK] ==========================
+[AUTO-PROCESS] Procesando email automaticamente - Cuenta: tonirodriguezolivera@outlook.es, ID: AQMkADAwATMwMAExLTk0OWMtZGJjOC0wMAItMDAKAEYAAANMFz...
+[WEBHOOK] Procesando nuevo email en background - Cuenta: tonirodriguezolivera@outlook.es, ID: AQMkADAwATMwMAExLTk0OWMtZGJjOC0wMAItMDAKAEYAAANMFz...
+[CLASSIFY ENDPOINT] Categorias cargadas: 1
+[CLASSIFY ENDPOINT] - Reservas 24H: Mails relacionados con viajes, vuelos, cambios,can...
+[CLASSIFY ENDPOINT] Recibido - Asunto: Sin asunto... | Texto: Sin asunto
+
+
+...
+[DEBUG] Intentando obtener adjuntos para email ID: AQMkADAwATMwMAExLTk0OWMtZGJjOC0wMAItMDAKAEYAAANMFz...
+[DEBUG] Token obtenido, buscando adjuntos...
+[DEBUG] Buscando adjuntos en email ID: AQMkADAwATMwMAExLTk0OWMtZGJjOC0wMAItMDAKAEYAAANMFz...
+[DEBUG] Se encontraron 1 adjunto(s) en el email
+[DEBUG] Adjunto 1: voucher-es-450202292 (1) (1).pdf (tama\xf1o: 148608 bytes, tipo: application/pdf)
+[DEBUG] Procesando adjunto 1/1: voucher-es-450202292 (1) (1).pdf
+[DEBUG] Extrayendo contenido de adjunto: voucher-es-450202292 (1) (1).pdf (tipo: application/pdf)
+[DEBUG] Descargando adjunto desde: https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATMwMAExLTk0OWMtZGJjOC0wMAItMDAKAEYAAANMFz917tg...
+[DEBUG] Adjunto descargado correctamente (tama\xf1o: 148320 bytes)
+[DEBUG] Tipo de contenido detectado: application/pdf, nombre: voucher-es-450202292 (1) (1).pdf
+[DEBUG] Detectado como PDF, intentando extraer texto...
+[DEBUG] PyPDF2 importado correctamente, intentando extraer texto de PDF...
+[DEBUG] PDF tiene 1 p\xe1gina(s)
+[DEBUG] Texto extra\xeddo de p\xe1gina 1/1 (longitud: 1913 caracteres)
+[DEBUG] Texto total extra\xeddo del PDF: 1913 caracteres
+[DEBUG] Contenido extra\xeddo del adjunto 1 (primeros 200 chars): B2B API PACKAGE
++41225290154
+Nmero interno de reserva 
+8527293
+Reserva 450202292 
+de 22.10.25
+Este alojamiento se reserva a travs de nuestro
+socio
+La Suite Dubai Hotel & Apartments
+502306, Sidra Tow...
+[DEBUG] Contenido total de adjuntos extra\xeddo (longitud: 1955 caracteres)
+[DEBUG] Contenido de adjuntos obtenido (primeros 500 chars): Adjunto: voucher-es-450202292 (1) (1).pdf
+B2B API PACKAGE
++41225290154
+Nmero interno de reserva 
+8527293
+Reserva 450202292 
+de 22.10.25
+Este alojamiento se reserva a travs de nuestro
+socio
+La Suite Dubai Hotel & Apartments
+502306, Sidra Tower, Sufouh Gardens, Sheikh Zayed
+Road, Dubi
++971 4 777 2777
+Check-in
+22.04.2026, desde
+15:00:00
+Check-out:
+23.04.2026, hasta
+12:00:00
+Deluxe Double room (cama doble), por 
+2 adultos
+Camas:
+Cama doble
+Huspedes:
+Adulto Uno
+, 
+Second Adult
+ 
+Importante. Ten e...
+[CLASSIFY ENDPOINT] TEXTO COMPLETO que se enviar\xe1 a la IA (longitud: 2020 caracteres):
+[CLASSIFY ENDPOINT] ========== INICIO TEXTO COMPLETO ==========
+Asunto: Sin asunto
+
+Cuerpo del email:
+
+
+
+Contenido de adjuntos:
+Adjunto: voucher-es-450202292 (1) (1).pdf
+B2B API PACKAGE
++41225290154
+Nmero interno de reserva 
+8527293
+Reserva 450202292 
+de 22.10.25
+Este alojamiento se reserva a travs de nuestro
+socio
+La Suite Dubai Hotel & Apartments
+502306, Sidra Tower, Sufouh Gardens, Sheikh Zayed
+Road, Dubi
++971 4 777 2777
+Check-in
+22.04.2026, desde
+15:00:00
+Check-out:
+23.04.2026, hasta
+12:00:00
+Deluxe Double room (cama doble), por 
+2 adultos
+Camas:
+Cama doble
+Huspedes:
+Adulto Uno
+, 
+Second Adult
+ 
+Importante. Ten en cuenta
+Es posible que los hoteles cobren tarifas obligatorias adicionales que el
+husped paga directamente en la propiedad, inclusive, entre otras:
+tarifa de resort, tarifa de instalaciones, tarifa por estada de ciudadanos
+extranjeros.
+Puede requerirse al husped que proporcione una tarjeta de crdito o
+depsito en efectivo como garanta de pago por servicios adicionales
+como: minibar, TV paga, etc.
+La agencia no es responsable de la calidad de los servicios que el hotel
+proporciona. El cliente puede ponerse en contacto directamente con la
+administracin del hotel para reclamar la cantidad y calidad de los
+servicios proporcionados. En caso de existir algn problema durante el
+registro o la salida, ponte en contacto con la Agencia.
+Poltica de cancelaciones y enmiendas
+Un cambio de reserva por parte del cliente se considera como una
+cancelacin de la reserva y realizacin de una nueva reserva.
+De acuerdo con los trminos del contrato y la tarifa, se aplicarn
+penalizaciones en caso de cancelacin de la reserva o de no
+presentarse.
+Notifica con antelacin si piensas que ingresars despus de las 6 pm.
+El hotel puede cancelar la reserva y cobrar una tarifa por no
+presentarse en el caso de que no acudas en ese horario.
+Comidas
+No se incluyen comidas, No se incluyen comidas para nios
+Incluido en el precio
+Impuesto de ocupacin:
+17 AED
+Cargo del servicio:
+28 AED
+No se incluye
+Impuesto municipal:
+20 AED
+ 
+GPS 25.108017 55.17875
+ 
+ 1/1
+[CLASSIFY ENDPOINT] ========== FIN TEXTO COMPLETO ==========
+[CLASSIFY] Iniciando clasificacion. Texto recibido: Asunto: Sin asunto
+
+Cuerpo del email:
+
+
+
+Contenido de adjuntos:
+Adjunto: voucher-es-450202292 (1) (...
+[CLASSIFY] Categorias disponibles: 1
+[CLASSIFY] Nombres de categorias: ['Reservas 24H']
+[CLASSIFY] Prompt completo (primeros 500 chars): Actuas como un clasificador de correos estricto pero inteligente.
+IMPORTANTE: Solo debes devolver una etiqueta si el mensaje REALMENTE coincide con la descripcion de esa categoria.
+Si el mensaje NO coincide con NINGUNA de las categorias disponibles, debes responder EXACTAMENTE con: "Sin etiqueta"
+No clasifiques mensajes que no tengan relacion con ninguna categoria.
+Debes devolver una unica etiqueta EXACTAMENTE igual a una de las listadas, o "Sin etiqueta" si no coincide.
+Compara el contenido del...
+[CLASSIFY] Enviando a OpenAI. Categorias: ['Reservas 24H']
+[CLASSIFY] Texto completo del mensaje: Asunto: Sin asunto
+
+Cuerpo del email:
+
+
+
+Contenido de adjuntos:
+Adjunto: voucher-es-450202292 (1) (1).pdf
+B2B API PACKAGE
++41225290154
+Nmero interno de reserva 
+8527293
+Reserva 450202292 
+de 22.10.2...
+[CLASSIFY] Respuesta de OpenAI: 'Reservas 24H'
+[CLASSIFY] Coincidencia exacta encontrada: 'Reservas 24H'
+[CLASSIFY ENDPOINT] Clasificacion resultante - ID: AQMkADAwATMwMAExLTk0OWMtZGJjOC0wMAItMDAKAEYAAANMFz... | Etiqueta: Reservas 24H

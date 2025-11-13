@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Priority Analyzer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF; color: white; border: none;
+            cursor: pointer; margin-bottom: 20px;
+        }
+        button:hover { background-color: #0056b3; }
+        .button-secondary { background-color: #6c757d; }
+        .button-secondary:hover { background-color: #5a6268; }
+        .email { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .email strong { display: inline-block; width: 70px; }
+        .label { font-weight: bold; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 5px; color: #fff; }
+        .label-container { display: flex; align-items: center; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
+        .responded-badge { 
+            background-color: #28a745; 
+            color: white; 
+            padding: 2px 8px; 
+            border-radius: 12px; 
+            font-size: 0.75em; 
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .responded-badge::before {
+            content: '✓';
+            font-size: 0.9em;
+        }
+        .no-label-badge {
+            background-color: #6c757d;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-block;
+        }
+        #add-account-form { margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; width: 320px; border-radius: 5px; }
+        #add-account-form input, #add-account-form select { display: block; margin-bottom: 10px; width: 100%; padding: 8px; box-sizing: border-box; }
+        #accounts-dropdown { margin-right: 10px; padding: 8px; }
+        .hint { color: #666; font-size: 0.9em; }
+        #categories-config { margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; max-width: 640px; }
+        #categories-container { margin-top: 10px; }
+        .category-row { border: 1px solid #e1e1e1; border-radius: 4px; padding: 10px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; }
+        .category-row label { font-weight: bold; font-size: 0.9em; }
+        .category-row input, .category-row textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        .category-row textarea { resize: vertical; min-height: 60px; }
+        .category-row-actions { display: flex; justify-content: flex-end; }
+        .category-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .category-row .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+        .category-row .checkbox-group input[type="checkbox"] { width: auto; margin: 0; }
+        .category-row .reply-input { margin-top: 8px; }
+        .category-row .reply-input:disabled { background-color: #f0f0f0; cursor: not-allowed; }
+        #categories-config { margin-top: 20px; }
+        #categories-config summary { 
+            cursor: pointer; 
+            padding: 12px; 
+            background-color: #f8f9fa; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #categories-config summary:hover { background-color: #e9ecef; }
+        #categories-config details[open] summary { 
+            border-bottom-left-radius: 0; 
+            border-bottom-right-radius: 0; 
+            border-bottom: none; 
+        }
+        #categories-config details { margin-bottom: 20px; }
+        #categories-config details[open] { 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            border-top: none; 
+        }
+        #categories-config details .details-content { 
+            padding: 15px; 
+            background-color: #fff; 
+            border-top: 1px solid #ddd;
+        }
+        #categories-config summary::marker { display: none; }
+        #categories-config summary::before { 
+            content: '▶ '; 
+            display: inline-block; 
+            transition: transform 0.2s; 
+            margin-right: 8px;
+        }
+        #categories-config details[open] summary::before { 
+            transform: rotate(90deg); 
+        }
+        @media (max-width: 600px) {
+            #add-account-form { width: 100%; }
+            .email strong { width: auto; margin-right: 5px; }
+        }
+    
+        .header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .header-logo { height: 48px; object-fit: contain; }
+        .loading-container { 
+            display: none; 
+            text-align: center; 
+            padding: 20px; 
+            margin: 20px 0;
+        }
+        .loading-container.active { display: block; }
+        .spinner { 
+            border: 4px solid #f3f3f3; 
+            border-top: 4px solid #007BFF; 
+            border-radius: 50%; 
+            width: 40px; 
+            height: 40px; 
+            animation: spin 1s linear infinite; 
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text { color: #666; font-size: 0.9em; }
+        #emails-container { position: relative; }
+</style>
+    </head>
+<body>
+    <div class="header">
+        <h1>Clasificador de Prioridad de Emails</h1>
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="header-logo">
+    </div>
+
+    <div id="add-account-form">
+        <h3>Agregar cuenta de correo</h3>
+        <input id="new-email" type="text" placeholder="Email" />
+        <input id="new-password" type="password" placeholder="Contrasena o app password" style="display: none;" />
+        <label for="new-provider" style="display: none;"><strong>Proveedor:</strong></label>
+        <select id="new-provider" onchange="togglePasswordField()" style="display: none;">
+            <option value="outlook_oauth" selected>Outlook (OAuth / Microsoft 365)</option>
+        </select>
+        <button onclick="addAccount()">Agregar cuenta</button>
+        <p id="add-account-message" class="hint"></p>
+        <p class="hint">Se abrirá Microsoft para autorizar la cuenta.</p>
+    </div>
+
+    <details id="categories-config">
+        <summary>Configurar etiquetas</summary>
+        <div class="details-content">
+            <p class="hint">Define el nombre de la carpeta que se creara y una instruccion para la IA.</p>
+            <div id="categories-container"></div>
+            <div class="category-actions">
+                <button type="button" class="button-secondary" onclick="addCategoryRow()">Agregar etiqueta</button>
+                <button type="button" onclick="saveCategoryConfig()">Guardar etiquetas</button>
+            </div>
+            <p id="categories-message" class="hint"></p>
+        </div>
+    </details>
+
+    <label for="accounts-dropdown"><strong>Selecciona una cuenta:</strong></label>
+    <select id="accounts-dropdown"></select>
+    <button onclick="fetchEmails()" id="analyze-btn">Analizar correos</button>
+
+    <div id="emails-container">
+        <div id="loading-indicator" class="loading-container">
+            <div class="spinner"></div>
+            <div class="loading-text">Procesando emails y creando carpetas...</div>
+        </div>
+        <div id="emails"></div>
+    </div>
+
+    <script>
+        let categories = [];
+        const labelPalette = ['#28a745', '#fd7e14', '#dc3545', '#17a2b8', '#6f42c1', '#6c757d'];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAccounts();
+            loadCategoriesConfig();
+        });
+
+        async function loadCategoriesConfig() {
+            try {
+                const resp = await fetch('/categories');
+                if (!resp.ok) throw new Error('Error al obtener las etiquetas.');
+                const data = await resp.json();
+                categories = Array.isArray(data) ? data : [];
+            } catch (error) {
+                console.error(error.message);
+                categories = [];
+            }
+            if (categories.length === 0) {
+                categories = [{ name: '', prompt: '', autoReply: false, replyText: '' }];
+            }
+            renderCategoryRows();
+        }
+
+        function renderCategoryRows() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+            categories.forEach((cat, index) => {
+                const row = document.createElement('div');
+                row.className = 'category-row';
+
+                const nameLabel = document.createElement('label');
+                nameLabel.textContent = 'Nombre de la carpeta';
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.placeholder = 'Ej: Prioridad alta';
+                nameInput.value = cat.name || '';
+                nameInput.className = 'category-name';
+
+                const promptLabel = document.createElement('label');
+                promptLabel.textContent = 'Prompt para la IA';
+                const promptInput = document.createElement('textarea');
+                promptInput.placeholder = 'Describe que correos deben ir a esta carpeta';
+                promptInput.value = cat.prompt || '';
+                promptInput.className = 'category-prompt';
+
+                const checkboxGroup = document.createElement('div');
+                checkboxGroup.className = 'checkbox-group';
+                const autoReplyCheckbox = document.createElement('input');
+                autoReplyCheckbox.type = 'checkbox';
+                autoReplyCheckbox.id = `auto-reply-${index}`;
+                autoReplyCheckbox.checked = cat.autoReply || false;
+                autoReplyCheckbox.className = 'category-auto-reply';
+                const checkboxLabel = document.createElement('label');
+                checkboxLabel.htmlFor = `auto-reply-${index}`;
+                checkboxLabel.textContent = 'Responder automáticamente';
+                checkboxGroup.appendChild(autoReplyCheckbox);
+                checkboxGroup.appendChild(checkboxLabel);
+
+                const replyLabel = document.createElement('label');
+                replyLabel.textContent = 'Respuesta automática';
+                const replyInput = document.createElement('textarea');
+                replyInput.placeholder = 'Escribe la respuesta automática que se enviará';
+                replyInput.value = cat.replyText || '';
+                replyInput.className = 'category-reply-text';
+                replyInput.disabled = !autoReplyCheckbox.checked;
+
+                autoReplyCheckbox.addEventListener('change', function() {
+                    replyInput.disabled = !this.checked;
+                });
+
+                row.appendChild(nameLabel);
+                row.appendChild(nameInput);
+                row.appendChild(promptLabel);
+                row.appendChild(promptInput);
+                row.appendChild(checkboxGroup);
+                row.appendChild(replyLabel);
+                row.appendChild(replyInput);
+
+                if (categories.length > 1) {
+                    const actions = document.createElement('div');
+                    actions.className = 'category-row-actions';
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'button-secondary';
+                    removeBtn.textContent = 'Eliminar';
+                    removeBtn.addEventListener('click', () => removeCategoryRow(index));
+                    actions.appendChild(removeBtn);
+                    row.appendChild(actions);
+                }
+
+                container.appendChild(row);
+            });
+        }
+
+        function collectCategoryForm() {
+            const rows = Array.from(document.querySelectorAll('.category-row'));
+            return rows.map(row => {
+                const name = row.querySelector('.category-name').value.trim();
+                const prompt = row.querySelector('.category-prompt').value.trim();
+                const autoReply = row.querySelector('.category-auto-reply').checked;
+                const replyText = row.querySelector('.category-reply-text').value.trim();
+                return { name, prompt, autoReply, replyText };
+            });
+        }
+
+        function setCategoriesMessage(message, color = '#666') {
+            const msgP = document.getElementById('categories-message');
+            msgP.textContent = message;
+            msgP.style.color = color;
+        }
+
+        function addCategoryRow() {
+            categories = collectCategoryForm();
+            categories.push({ name: '', prompt: '', autoReply: false, replyText: '' });
+            setCategoriesMessage('');
+            renderCategoryRows();
+        }
+
+        function removeCategoryRow(index) {
+            categories = collectCategoryForm();
+            if (categories.length <= 1) {
+                setCategoriesMessage('Debe existir al menos una etiqueta.', 'red');
+                return;
+            }
+            categories.splice(index, 1);
+            setCategoriesMessage('');
+            renderCategoryRows();
+        }
+
+        async function saveCategoryConfig() {
+            categories = collectCategoryForm();
+            const sanitized = categories.map(cat => ({
+                name: cat.name.trim(),
+                prompt: cat.prompt.trim(),
+                autoReply: cat.autoReply || false,
+                replyText: cat.replyText.trim(),
+            }));
+            if (sanitized.some(cat => !cat.name)) {
+                setCategoriesMessage('Completa el nombre de todas las etiquetas antes de guardar.', 'red');
+                return;
+            }
+            if (sanitized.some(cat => cat.autoReply && !cat.replyText)) {
+                setCategoriesMessage('Si activas la respuesta automática, debes escribir el texto de la respuesta.', 'red');
+                return;
+            }
+            try {
+                const resp = await fetch('/categories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ categories: sanitized })
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'No se pudo guardar.');
+                categories = Array.isArray(data.categories) ? data.categories : sanitized;
+                setCategoriesMessage('Etiquetas guardadas correctamente.', 'green');
+                renderCategoryRows();
+            } catch (error) {
+                console.error(error);
+                setCategoriesMessage(error.message, 'red');
+            }
+        }
+
+        function getLabelColor(label) {
+            if (!label) return '#6c757d';
+            const index = categories.findIndex(cat => cat.name && cat.name.toLowerCase() === label.toLowerCase());
+            if (index >= 0) {
+                return labelPalette[index % labelPalette.length];
+            }
+            return '#6c757d';
+        }
+
+        async function loadAccounts() {
+            try {
+                const resp = await fetch('/accounts');
+                if (!resp.ok) throw new Error('Error al obtener las cuentas.');
+                const accounts = await resp.json();
+                const dropdown = document.getElementById('accounts-dropdown');
+                dropdown.innerHTML = '';
+                accounts.forEach(acct => {
+                    const option = document.createElement('option');
+                    option.value = acct.email;
+                    option.textContent = acct.email;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error(error.message);
+            }
+        }
+
+        function togglePasswordField() {
+            const provider = document.getElementById('new-provider').value;
+            const passInput = document.getElementById('new-password');
+            const isOauth = provider === 'outlook_oauth';
+            passInput.disabled = isOauth;
+            passInput.placeholder = isOauth ? 'No requerida para OAuth' : 'Contrasena o app password';
+        }
+
+        async function addAccount() {
+            const email = document.getElementById('new-email').value.trim();
+            const provider = document.getElementById('new-provider').value || 'outlook_oauth';
+            const msgP = document.getElementById('add-account-message');
+            msgP.textContent = '';
+            
+            if (!email) {
+                msgP.textContent = 'Por favor, introduce un email.';
+                msgP.style.color = 'red';
+                return;
+            }
+            
+            try {
+                const resp = await fetch('/add-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, provider })
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Error al agregar cuenta');
+                if (data.authUrl) {
+                    window.location.href = data.authUrl;
+                    return;
+                }
+                msgP.textContent = data.message || 'Cuenta agregada.';
+                msgP.style.color = 'green';
+                loadAccounts();
+            } catch (e) {
+                msgP.textContent = e.message;
+                msgP.style.color = 'red';
+            }
+        }
+
+        async function fetchEmails() {
+            const accountEmail = document.getElementById('accounts-dropdown').value;
+            const container = document.getElementById('emails');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            
+            if (!accountEmail) {
+                return;
+            }
+            
+            // Mostrar indicador de carga y deshabilitar botón
+            loadingIndicator.classList.add('active');
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = 'Procesando...';
+            container.innerHTML = '';
+            
+            try {
+                const resp = await fetch(`/fetch-emails?accountEmail=${encodeURIComponent(accountEmail)}`);
+                const emails = await resp.json();
+                if (!resp.ok) throw new Error(emails.error || 'Error al recuperar correos');
+                
+                // Actualizar texto del indicador
+                const loadingText = loadingIndicator.querySelector('.loading-text');
+                let processedCount = 0;
+                let classifiedCount = 0;
+                let skippedCount = 0;
+                
+                // Deduplicar emails por ID para evitar procesar el mismo email múltiples veces
+                const seenIds = new Set();
+                const uniqueEmails = [];
+                for (const msg of emails) {
+                    if (!seenIds.has(msg.id)) {
+                        seenIds.add(msg.id);
+                        uniqueEmails.push(msg);
+                    }
+                }
+                
+                // Si no hay emails, mostrar mensaje
+                if (uniqueEmails.length === 0) {
+                    loadingText.textContent = 'Todos los emails de la última semana ya han sido analizados.';
+                    setTimeout(() => {
+                        loadingIndicator.classList.remove('active');
+                        analyzeBtn.disabled = false;
+                        analyzeBtn.textContent = 'Analizar correos';
+                        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #28a745; font-weight: bold; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; margin: 20px 0;">✓ Todos los emails de la última semana ya han sido analizados.</div>';
+                    }, 1500);
+                    return;
+                }
+                
+                let alreadyProcessedCount = 0;
+                let newClassifiedCount = 0;
+                for (const msg of uniqueEmails) {
+                    processedCount++;
+                    loadingText.textContent = `Procesando email ${processedCount} de ${uniqueEmails.length}...`;
+                    // Log para debugging: verificar si hay duplicados
+                    console.log(`[FRONTEND] Procesando email ${processedCount}: ID=${msg.id}, Subject=${msg.subject}`);
+                    const result = await classifyEmail(accountEmail, msg);
+                    // result puede ser un objeto con {label, alreadyProcessed} o solo el label
+                    let label, alreadyProcessed;
+                    if (typeof result === 'object' && result !== null) {
+                        label = result.label;
+                        alreadyProcessed = result.alreadyProcessed || false;
+                    } else {
+                        label = result;
+                        alreadyProcessed = false;
+                    }
+                    
+                    // Mostrar todos los emails, incluso los que tienen "Sin etiqueta"
+                    renderEmail(msg, label);
+                    if (alreadyProcessed) {
+                        alreadyProcessedCount++;
+                    } else if (label && label !== 'Sin etiqueta') {
+                        classifiedCount++;
+                        newClassifiedCount++;
+                    } else {
+                        skippedCount++;
+                    }
+                }
+                
+                // Verificar si todos los emails de la última semana ya fueron analizados
+                const completionMessage = `Completado! ${classifiedCount} de ${uniqueEmails.length} emails clasificados.`;
+                loadingText.textContent = completionMessage;
+                
+                // Mostrar mensaje si todos los emails de la última semana ya fueron analizados
+                // Esto ocurre cuando:
+                // 1. Todos los emails ya fueron procesados previamente (alreadyProcessedCount === uniqueEmails.length)
+                // 2. O cuando no se clasificó ningún email nuevo (newClassifiedCount === 0) y todos fueron saltados o ya procesados
+                const allAlreadyProcessed = alreadyProcessedCount === uniqueEmails.length;
+                const noNewClassifications = newClassifiedCount === 0 && uniqueEmails.length > 0;
+                
+                if (allAlreadyProcessed || noNewClassifications) {
+                    setTimeout(() => {
+                        const completionDiv = document.createElement('div');
+                        completionDiv.style.cssText = 'padding: 20px; text-align: center; color: #28a745; font-weight: bold; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; margin: 20px 0;';
+                        completionDiv.textContent = '✓ Todos los emails de la última semana ya han sido analizados.';
+                        container.insertBefore(completionDiv, container.firstChild);
+                    }, 500);
+                }
+                
+                // Ocultar indicador después de un breve delay
+                setTimeout(() => {
+                    loadingIndicator.classList.remove('active');
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.textContent = 'Analizar correos';
+                }, 2000);
+                
+            } catch (e) {
+                console.error(e);
+                loadingIndicator.classList.remove('active');
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = 'Analizar correos';
+                container.innerHTML = `<div style="color: red; padding: 10px;">Error: ${e.message}</div>`;
+            }
+        }
+
+        async function classifyEmail(accountEmail, msg) {
+            const text = `${msg.subject}\n\n${msg.body}`;
+            try {
+                const resp = await fetch('/classify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text,
+                        id: msg.id,
+                        accountEmail,
+                        from: msg.from,
+                        originalSubject: msg.subject,
+                        body: msg.body || ''
+                    })
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Error al clasificar');
+                // Si el email fue saltado (skipped) o ya procesado, devolver objeto con información
+                if (data.skipped || data.alreadyProcessed) {
+                    return {
+                        label: data.label || 'Sin etiqueta',
+                        alreadyProcessed: data.alreadyProcessed || false
+                    };
+                }
+                return data.label || 'Sin etiqueta';
+            } catch (e) {
+                console.error('Error al clasificar:', e);
+                return 'Sin etiqueta';
+            }
+        }
+
+        function renderEmail(msg, label) {
+            const container = document.getElementById('emails');
+            const div = document.createElement('div');
+            div.className = 'email';
+
+            const fromLine = document.createElement('div');
+            const fromLabel = document.createElement('strong');
+            fromLabel.textContent = 'De:';
+            const fromText = document.createTextNode(` ${msg.from || ''}`);
+            fromLine.appendChild(fromLabel);
+            fromLine.appendChild(fromText);
+
+            const subjectLine = document.createElement('div');
+            const subjectLabel = document.createElement('strong');
+            subjectLabel.textContent = 'Asunto:';
+            const subjectText = document.createTextNode(` ${msg.subject || ''}`);
+            subjectLine.appendChild(subjectLabel);
+            subjectLine.appendChild(subjectText);
+
+            const dateLine = document.createElement('div');
+            const dateLabel = document.createElement('strong');
+            dateLabel.textContent = 'Fecha:';
+            const dateText = document.createTextNode(` ${msg.dateFormatted || msg.date || 'Fecha no disponible'}`);
+            dateLine.appendChild(dateLabel);
+            dateLine.appendChild(dateText);
+
+            const folderLine = document.createElement('div');
+            const folderLabel = document.createElement('em');
+            folderLabel.textContent = 'Carpeta:';
+            const folderText = document.createTextNode(` ${msg.folder || ''}`);
+            folderLine.appendChild(folderLabel);
+            folderLine.appendChild(folderText);
+
+            // Crear contenedor para la etiqueta y el indicador de respuesta
+            const labelContainer = document.createElement('div');
+            labelContainer.className = 'label-container';
+
+            // Si el email tiene "Sin etiqueta", mostrar un badge especial
+            if (label === 'Sin etiqueta' || !label) {
+                const noLabelBadge = document.createElement('span');
+                noLabelBadge.className = 'no-label-badge';
+                noLabelBadge.textContent = 'Sin etiqueta';
+                labelContainer.appendChild(noLabelBadge);
+            } else {
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'label';
+                labelSpan.textContent = label;
+                labelSpan.style.backgroundColor = getLabelColor(label);
+                labelContainer.appendChild(labelSpan);
+
+                // Verificar si esta categoría tiene respuesta automática activada
+                const category = categories.find(cat => cat.name && cat.name.toLowerCase() === label.toLowerCase());
+                if (category && category.autoReply && category.replyText) {
+                    const respondedBadge = document.createElement('span');
+                    respondedBadge.className = 'responded-badge';
+                    respondedBadge.textContent = 'Respondido';
+                    labelContainer.appendChild(respondedBadge);
+                }
+            }
+
+            div.appendChild(fromLine);
+            div.appendChild(subjectLine);
+            div.appendChild(dateLine);
+            div.appendChild(folderLine);
+            div.appendChild(labelContainer);
+
+            container.appendChild(div);
+        }
+    </script>
+</body>
+</html>

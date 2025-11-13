@@ -1,0 +1,13 @@
+.env
+accounts.json
+*.log
+stderr.log
+processed.json
+__pycache__/
+*.pyc
+tmp/
+.DS_Store
+*.swp
+*.swo
+*~
+
