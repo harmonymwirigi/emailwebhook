@@ -938,11 +938,42 @@ def process_new_email_from_notification(account_email: str, email_id: str):
             body = strip_html(body_obj.get("content", ""))
         else:
             body = body_obj.get("content", "")
-        
+
+        received_time = email_data.get("receivedDateTime", "Unknown")
+
+        # === LOG FULL EMAIL CONTENT ===
+        print("=" * 80)
+        print("[AUTO-PROCESS] ===== FULL EMAIL RECEIVED =====")
+        try:
+            safe_account = str(account_email).encode('ascii', 'ignore').decode('ascii')
+            safe_id = str(email_id).encode('ascii', 'ignore').decode('ascii')
+            safe_from = str(from_addr).encode('ascii', 'ignore').decode('ascii')
+            safe_subject = str(subj).encode('ascii', 'ignore').decode('ascii')
+            safe_time = str(received_time).encode('ascii', 'ignore').decode('ascii')
+            print(f"[AUTO-PROCESS] Account: {safe_account}")
+            print(f"[AUTO-PROCESS] Email ID: {safe_id}")
+            print(f"[AUTO-PROCESS] From: {safe_from}")
+            print(f"[AUTO-PROCESS] Subject: {safe_subject}")
+            print(f"[AUTO-PROCESS] Received: {safe_time}")
+            print(f"[AUTO-PROCESS] --- EMAIL BODY (first 500 chars) ---")
+            safe_body = str(body[:500] if body else "(empty)").encode('ascii', 'ignore').decode('ascii')
+            print(safe_body)
+            if len(body) > 500:
+                print(f"[AUTO-PROCESS] ... (body truncated, total length: {len(body)} chars)")
+        except Exception:
+            print("[AUTO-PROCESS] (Error formatting email details)")
+        print("=" * 80)
+
         # Obtener contenido de adjuntos
         attachments_content = ""
         try:
             attachments_content = get_attachments_content(token, email_id)
+            if attachments_content:
+                try:
+                    safe_attach = str(attachments_content[:300]).encode('ascii', 'ignore').decode('ascii')
+                    print(f"[AUTO-PROCESS] Attachments found (first 300 chars): {safe_attach}...")
+                except Exception:
+                    print("[AUTO-PROCESS] Attachments found")
         except Exception as e:
             try:
                 safe_error = str(e).encode('ascii', 'ignore').decode('ascii')
@@ -959,48 +990,109 @@ def process_new_email_from_notification(account_email: str, email_id: str):
         
         if not classification_text.strip() or classification_text.strip() == f"Asunto: {subj}\n\n":
             classification_text = subj
-        
+
+        # === LOG CLASSIFICATION INPUT ===
+        print("=" * 80)
+        print("[AUTO-PROCESS] ===== STARTING AI CLASSIFICATION =====")
+        try:
+            safe_text = str(classification_text[:800]).encode('ascii', 'ignore').decode('ascii')
+            print(f"[AUTO-PROCESS] Text sent to AI (first 800 chars):")
+            print(safe_text)
+            if len(classification_text) > 800:
+                print(f"[AUTO-PROCESS] ... (truncated, total length: {len(classification_text)} chars)")
+        except Exception:
+            print("[AUTO-PROCESS] (Error formatting classification text)")
+        print("=" * 80)
+
         # Clasificar el email
         label = classify_email(classification_text)
-        
+
+        # === LOG CLASSIFICATION RESULT ===
+        print("=" * 80)
+        print("[AUTO-PROCESS] ===== AI CLASSIFICATION RESULT =====")
+        try:
+            safe_label = str(label).encode('ascii', 'ignore').decode('ascii')
+            print(f"[AUTO-PROCESS] AI Result: {safe_label}")
+        except Exception:
+            print(f"[AUTO-PROCESS] AI Result: (error formatting)")
+        print("=" * 80)
+
         # Si no se clasificó, marcar como procesado y salir
         if label == "Sin etiqueta":
             mark_processed(account_email, email_id, label)
             try:
                 safe_id = str(email_id)[:50].encode('ascii', 'ignore').decode('ascii')
-                print(f"[AUTO-PROCESS] Email sin etiqueta - ID: {safe_id}...")
+                print(f"[AUTO-PROCESS] No matching category - Email marked as processed - ID: {safe_id}...")
             except Exception:
-                print("[AUTO-PROCESS] Email sin etiqueta")
+                print("[AUTO-PROCESS] No matching category - Email marked as processed")
             return
         
         # Obtener la categoría completa
         category = get_category_by_name(label)
-        
+
+        # === LOG ACTIONS BEING TAKEN ===
+        print("=" * 80)
+        print("[AUTO-PROCESS] ===== TAKING ACTIONS =====")
+        try:
+            safe_label = str(label).encode('ascii', 'ignore').decode('ascii')
+            print(f"[AUTO-PROCESS] Moving email to folder: {safe_label}")
+        except Exception:
+            print("[AUTO-PROCESS] Moving email to folder")
+
         # Aplicar etiqueta (mover a carpeta)
         label_success = apply_label_graph(email_id, label, account_email)
-        
+
+        if label_success:
+            print(f"[AUTO-PROCESS] ✓ Successfully moved to folder")
+        else:
+            print(f"[AUTO-PROCESS] ✗ Failed to move to folder")
+
         # Enviar respuesta automática si está configurada
         reply_sent = False
         if label_success and category and category.get('autoReply') and category.get('replyText'):
             reply_text = category.get('replyText', '')
             try:
+                safe_reply = str(reply_text[:100]).encode('ascii', 'ignore').decode('ascii')
+                print(f"[AUTO-PROCESS] Sending auto-reply: {safe_reply}...")
+            except Exception:
+                print(f"[AUTO-PROCESS] Sending auto-reply...")
+            try:
                 reply_sent = send_reply_graph(email_id, from_addr, subj, reply_text, account_email)
+                if reply_sent:
+                    print(f"[AUTO-PROCESS] ✓ Auto-reply sent successfully")
+                else:
+                    print(f"[AUTO-PROCESS] ✗ Auto-reply failed")
             except Exception as e:
                 try:
                     safe_error = str(e).encode('ascii', 'ignore').decode('ascii')
-                    print(f"[AUTO-PROCESS] Error al enviar respuesta automatica: {safe_error}")
+                    print(f"[AUTO-PROCESS] ✗ Error sending auto-reply: {safe_error}")
                 except Exception:
-                    print("[AUTO-PROCESS] Error al enviar respuesta automatica")
-        
+                    print("[AUTO-PROCESS] ✗ Error sending auto-reply")
+        elif category and category.get('autoReply'):
+            print(f"[AUTO-PROCESS] Auto-reply configured but no reply text set")
+        else:
+            print(f"[AUTO-PROCESS] Auto-reply not configured for this category")
+
+        print("=" * 80)
+
         # Marcar como procesado
         mark_processed(account_email, email_id, label)
+
+        # === FINAL SUCCESS LOG ===
+        print("=" * 80)
+        print("[AUTO-PROCESS] ===== PROCESSING COMPLETE =====")
         try:
-            safe_id = str(email_id)[:50].encode('ascii', 'ignore').decode('ascii')
+            safe_id = str(email_id).encode('ascii', 'ignore').decode('ascii')
             safe_label = str(label).encode('ascii', 'ignore').decode('ascii')
-            reply_status = "Enviada" if reply_sent else "No enviada"
-            print(f"[AUTO-PROCESS] Email procesado automaticamente - ID: {safe_id}... | Etiqueta: {safe_label} | Respuesta: {reply_status}")
+            safe_subject = str(subj).encode('ascii', 'ignore').decode('ascii')
+            print(f"[AUTO-PROCESS] Email ID: {safe_id}")
+            print(f"[AUTO-PROCESS] Subject: {safe_subject}")
+            print(f"[AUTO-PROCESS] Category: {safe_label}")
+            print(f"[AUTO-PROCESS] Folder Move: {'SUCCESS' if label_success else 'FAILED'}")
+            print(f"[AUTO-PROCESS] Auto-Reply: {'SENT' if reply_sent else 'NOT SENT'}")
         except Exception:
             print("[AUTO-PROCESS] Email procesado automaticamente")
+        print("=" * 80)
         
     except Exception as e:
         try:
