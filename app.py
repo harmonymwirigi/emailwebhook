@@ -887,44 +887,45 @@ def process_new_email_from_notification(account_email: str, email_id: str):
     """
     Procesa automáticamente un nuevo email cuando llega una notificación de Microsoft Graph.
     """
+    import sys
     try:
         try:
             safe_email = str(account_email).encode('ascii', 'ignore').decode('ascii')
             safe_id = str(email_id)[:50].encode('ascii', 'ignore').decode('ascii')
-            print(f"[AUTO-PROCESS] Procesando email automaticamente - Cuenta: {safe_email}, ID: {safe_id}...")
+            print(f"[AUTO-PROCESS] Procesando email automaticamente - Cuenta: {safe_email}, ID: {safe_id}...", file=sys.stderr, flush=True)
         except Exception:
-            print("[AUTO-PROCESS] Procesando email automaticamente")
-        
+            print("[AUTO-PROCESS] Procesando email automaticamente", file=sys.stderr, flush=True)
+
         # Verificar si ya está procesado
         if is_already_processed(account_email, email_id):
             try:
                 safe_id = str(email_id)[:50].encode('ascii', 'ignore').decode('ascii')
-                print(f"[AUTO-PROCESS] Email ya procesado - ID: {safe_id}...")
+                print(f"[AUTO-PROCESS] Email ya procesado - ID: {safe_id}...", file=sys.stderr, flush=True)
             except Exception:
-                print("[AUTO-PROCESS] Email ya procesado")
+                print("[AUTO-PROCESS] Email ya procesado", file=sys.stderr, flush=True)
             return
-        
+
         # Obtener el token
         token = get_graph_token_for_account(account_email)
         if not token:
             try:
                 safe_email = str(account_email).encode('ascii', 'ignore').decode('ascii')
-                print(f"[AUTO-PROCESS] No se pudo obtener token para {safe_email}")
+                print(f"[AUTO-PROCESS] No se pudo obtener token para {safe_email}", file=sys.stderr, flush=True)
             except Exception:
-                print("[AUTO-PROCESS] No se pudo obtener token")
+                print("[AUTO-PROCESS] No se pudo obtener token", file=sys.stderr, flush=True)
             return
         
         # Obtener el email completo desde Microsoft Graph
         headers = {"Authorization": f"Bearer {token}", "Prefer": 'outlook.body-content-type="text"'}
         email_url = f"https://graph.microsoft.com/v1.0/me/messages/{email_id}?$select=id,subject,from,body,receivedDateTime"
-        
+
         r = requests.get(email_url, headers=headers)
         if r.status_code >= 300:
             try:
                 safe_id = str(email_id)[:50].encode('ascii', 'ignore').decode('ascii')
-                print(f"[AUTO-PROCESS] Error al obtener email {safe_id}...: {r.status_code}")
+                print(f"[AUTO-PROCESS] Error al obtener email {safe_id}...: {r.status_code}", file=sys.stderr, flush=True)
             except Exception:
-                print(f"[AUTO-PROCESS] Error al obtener email: {r.status_code}")
+                print(f"[AUTO-PROCESS] Error al obtener email: {r.status_code}", file=sys.stderr, flush=True)
             return
         
         email_data = r.json()
@@ -942,27 +943,27 @@ def process_new_email_from_notification(account_email: str, email_id: str):
         received_time = email_data.get("receivedDateTime", "Unknown")
 
         # === LOG FULL EMAIL CONTENT ===
-        print("=" * 80)
-        print("[AUTO-PROCESS] ===== FULL EMAIL RECEIVED =====")
+        print("=" * 80, file=sys.stderr, flush=True)
+        print("[AUTO-PROCESS] ===== FULL EMAIL RECEIVED =====", file=sys.stderr, flush=True)
         try:
             safe_account = str(account_email).encode('ascii', 'ignore').decode('ascii')
             safe_id = str(email_id).encode('ascii', 'ignore').decode('ascii')
             safe_from = str(from_addr).encode('ascii', 'ignore').decode('ascii')
             safe_subject = str(subj).encode('ascii', 'ignore').decode('ascii')
             safe_time = str(received_time).encode('ascii', 'ignore').decode('ascii')
-            print(f"[AUTO-PROCESS] Account: {safe_account}")
-            print(f"[AUTO-PROCESS] Email ID: {safe_id}")
-            print(f"[AUTO-PROCESS] From: {safe_from}")
-            print(f"[AUTO-PROCESS] Subject: {safe_subject}")
-            print(f"[AUTO-PROCESS] Received: {safe_time}")
-            print(f"[AUTO-PROCESS] --- EMAIL BODY (first 500 chars) ---")
+            print(f"[AUTO-PROCESS] Account: {safe_account}", file=sys.stderr, flush=True)
+            print(f"[AUTO-PROCESS] Email ID: {safe_id}", file=sys.stderr, flush=True)
+            print(f"[AUTO-PROCESS] From: {safe_from}", file=sys.stderr, flush=True)
+            print(f"[AUTO-PROCESS] Subject: {safe_subject}", file=sys.stderr, flush=True)
+            print(f"[AUTO-PROCESS] Received: {safe_time}", file=sys.stderr, flush=True)
+            print(f"[AUTO-PROCESS] --- EMAIL BODY (first 500 chars) ---", file=sys.stderr, flush=True)
             safe_body = str(body[:500] if body else "(empty)").encode('ascii', 'ignore').decode('ascii')
-            print(safe_body)
+            print(safe_body, file=sys.stderr, flush=True)
             if len(body) > 500:
-                print(f"[AUTO-PROCESS] ... (body truncated, total length: {len(body)} chars)")
+                print(f"[AUTO-PROCESS] ... (body truncated, total length: {len(body)} chars)", file=sys.stderr, flush=True)
         except Exception:
-            print("[AUTO-PROCESS] (Error formatting email details)")
-        print("=" * 80)
+            print("[AUTO-PROCESS] (Error formatting email details)", file=sys.stderr, flush=True)
+        print("=" * 80, file=sys.stderr, flush=True)
 
         # Obtener contenido de adjuntos
         attachments_content = ""
@@ -971,15 +972,15 @@ def process_new_email_from_notification(account_email: str, email_id: str):
             if attachments_content:
                 try:
                     safe_attach = str(attachments_content[:300]).encode('ascii', 'ignore').decode('ascii')
-                    print(f"[AUTO-PROCESS] Attachments found (first 300 chars): {safe_attach}...")
+                    print(f"[AUTO-PROCESS] Attachments found (first 300 chars): {safe_attach}...", file=sys.stderr, flush=True)
                 except Exception:
-                    print("[AUTO-PROCESS] Attachments found")
+                    print("[AUTO-PROCESS] Attachments found", file=sys.stderr, flush=True)
         except Exception as e:
             try:
                 safe_error = str(e).encode('ascii', 'ignore').decode('ascii')
-                print(f"[AUTO-PROCESS] Error al obtener adjuntos: {safe_error}")
+                print(f"[AUTO-PROCESS] Error al obtener adjuntos: {safe_error}", file=sys.stderr, flush=True)
             except Exception:
-                print("[AUTO-PROCESS] Error al obtener adjuntos")
+                print("[AUTO-PROCESS] Error al obtener adjuntos", file=sys.stderr, flush=True)
         
         # Combinar texto para clasificación
         classification_text = f"Asunto: {subj}\n\n"
@@ -992,60 +993,60 @@ def process_new_email_from_notification(account_email: str, email_id: str):
             classification_text = subj
 
         # === LOG CLASSIFICATION INPUT ===
-        print("=" * 80)
-        print("[AUTO-PROCESS] ===== STARTING AI CLASSIFICATION =====")
+        print("=" * 80, file=sys.stderr, flush=True)
+        print("[AUTO-PROCESS] ===== STARTING AI CLASSIFICATION =====", file=sys.stderr, flush=True)
         try:
             safe_text = str(classification_text[:800]).encode('ascii', 'ignore').decode('ascii')
-            print(f"[AUTO-PROCESS] Text sent to AI (first 800 chars):")
-            print(safe_text)
+            print(f"[AUTO-PROCESS] Text sent to AI (first 800 chars):", file=sys.stderr, flush=True)
+            print(safe_text, file=sys.stderr, flush=True)
             if len(classification_text) > 800:
-                print(f"[AUTO-PROCESS] ... (truncated, total length: {len(classification_text)} chars)")
+                print(f"[AUTO-PROCESS] ... (truncated, total length: {len(classification_text)} chars)", file=sys.stderr, flush=True)
         except Exception:
-            print("[AUTO-PROCESS] (Error formatting classification text)")
-        print("=" * 80)
+            print("[AUTO-PROCESS] (Error formatting classification text)", file=sys.stderr, flush=True)
+        print("=" * 80, file=sys.stderr, flush=True)
 
         # Clasificar el email
         label = classify_email(classification_text)
 
         # === LOG CLASSIFICATION RESULT ===
-        print("=" * 80)
-        print("[AUTO-PROCESS] ===== AI CLASSIFICATION RESULT =====")
+        print("=" * 80, file=sys.stderr, flush=True)
+        print("[AUTO-PROCESS] ===== AI CLASSIFICATION RESULT =====", file=sys.stderr, flush=True)
         try:
             safe_label = str(label).encode('ascii', 'ignore').decode('ascii')
-            print(f"[AUTO-PROCESS] AI Result: {safe_label}")
+            print(f"[AUTO-PROCESS] AI Result: {safe_label}", file=sys.stderr, flush=True)
         except Exception:
-            print(f"[AUTO-PROCESS] AI Result: (error formatting)")
-        print("=" * 80)
+            print(f"[AUTO-PROCESS] AI Result: (error formatting)", file=sys.stderr, flush=True)
+        print("=" * 80, file=sys.stderr, flush=True)
 
         # Si no se clasificó, marcar como procesado y salir
         if label == "Sin etiqueta":
             mark_processed(account_email, email_id, label)
             try:
                 safe_id = str(email_id)[:50].encode('ascii', 'ignore').decode('ascii')
-                print(f"[AUTO-PROCESS] No matching category - Email marked as processed - ID: {safe_id}...")
+                print(f"[AUTO-PROCESS] No matching category - Email marked as processed - ID: {safe_id}...", file=sys.stderr, flush=True)
             except Exception:
-                print("[AUTO-PROCESS] No matching category - Email marked as processed")
+                print("[AUTO-PROCESS] No matching category - Email marked as processed", file=sys.stderr, flush=True)
             return
         
         # Obtener la categoría completa
         category = get_category_by_name(label)
 
         # === LOG ACTIONS BEING TAKEN ===
-        print("=" * 80)
-        print("[AUTO-PROCESS] ===== TAKING ACTIONS =====")
+        print("=" * 80, file=sys.stderr, flush=True)
+        print("[AUTO-PROCESS] ===== TAKING ACTIONS =====", file=sys.stderr, flush=True)
         try:
             safe_label = str(label).encode('ascii', 'ignore').decode('ascii')
-            print(f"[AUTO-PROCESS] Moving email to folder: {safe_label}")
+            print(f"[AUTO-PROCESS] Moving email to folder: {safe_label}", file=sys.stderr, flush=True)
         except Exception:
-            print("[AUTO-PROCESS] Moving email to folder")
+            print("[AUTO-PROCESS] Moving email to folder", file=sys.stderr, flush=True)
 
         # Aplicar etiqueta (mover a carpeta)
         label_success = apply_label_graph(email_id, label, account_email)
 
         if label_success:
-            print(f"[AUTO-PROCESS] ✓ Successfully moved to folder")
+            print(f"[AUTO-PROCESS] ✓ Successfully moved to folder", file=sys.stderr, flush=True)
         else:
-            print(f"[AUTO-PROCESS] ✗ Failed to move to folder")
+            print(f"[AUTO-PROCESS] ✗ Failed to move to folder", file=sys.stderr, flush=True)
 
         # Enviar respuesta automática si está configurada
         reply_sent = False
@@ -1053,60 +1054,61 @@ def process_new_email_from_notification(account_email: str, email_id: str):
             reply_text = category.get('replyText', '')
             try:
                 safe_reply = str(reply_text[:100]).encode('ascii', 'ignore').decode('ascii')
-                print(f"[AUTO-PROCESS] Sending auto-reply: {safe_reply}...")
+                print(f"[AUTO-PROCESS] Sending auto-reply: {safe_reply}...", file=sys.stderr, flush=True)
             except Exception:
-                print(f"[AUTO-PROCESS] Sending auto-reply...")
+                print(f"[AUTO-PROCESS] Sending auto-reply...", file=sys.stderr, flush=True)
             try:
                 reply_sent = send_reply_graph(email_id, from_addr, subj, reply_text, account_email)
                 if reply_sent:
-                    print(f"[AUTO-PROCESS] ✓ Auto-reply sent successfully")
+                    print(f"[AUTO-PROCESS] ✓ Auto-reply sent successfully", file=sys.stderr, flush=True)
                 else:
-                    print(f"[AUTO-PROCESS] ✗ Auto-reply failed")
+                    print(f"[AUTO-PROCESS] ✗ Auto-reply failed", file=sys.stderr, flush=True)
             except Exception as e:
                 try:
                     safe_error = str(e).encode('ascii', 'ignore').decode('ascii')
-                    print(f"[AUTO-PROCESS] ✗ Error sending auto-reply: {safe_error}")
+                    print(f"[AUTO-PROCESS] ✗ Error sending auto-reply: {safe_error}", file=sys.stderr, flush=True)
                 except Exception:
-                    print("[AUTO-PROCESS] ✗ Error sending auto-reply")
+                    print("[AUTO-PROCESS] ✗ Error sending auto-reply", file=sys.stderr, flush=True)
         elif category and category.get('autoReply'):
-            print(f"[AUTO-PROCESS] Auto-reply configured but no reply text set")
+            print(f"[AUTO-PROCESS] Auto-reply configured but no reply text set", file=sys.stderr, flush=True)
         else:
-            print(f"[AUTO-PROCESS] Auto-reply not configured for this category")
+            print(f"[AUTO-PROCESS] Auto-reply not configured for this category", file=sys.stderr, flush=True)
 
-        print("=" * 80)
+        print("=" * 80, file=sys.stderr, flush=True)
 
         # Marcar como procesado
         mark_processed(account_email, email_id, label)
 
         # === FINAL SUCCESS LOG ===
-        print("=" * 80)
-        print("[AUTO-PROCESS] ===== PROCESSING COMPLETE =====")
+        print("=" * 80, file=sys.stderr, flush=True)
+        print("[AUTO-PROCESS] ===== PROCESSING COMPLETE =====", file=sys.stderr, flush=True)
         try:
             safe_id = str(email_id).encode('ascii', 'ignore').decode('ascii')
             safe_label = str(label).encode('ascii', 'ignore').decode('ascii')
             safe_subject = str(subj).encode('ascii', 'ignore').decode('ascii')
-            print(f"[AUTO-PROCESS] Email ID: {safe_id}")
-            print(f"[AUTO-PROCESS] Subject: {safe_subject}")
-            print(f"[AUTO-PROCESS] Category: {safe_label}")
-            print(f"[AUTO-PROCESS] Folder Move: {'SUCCESS' if label_success else 'FAILED'}")
-            print(f"[AUTO-PROCESS] Auto-Reply: {'SENT' if reply_sent else 'NOT SENT'}")
+            print(f"[AUTO-PROCESS] Email ID: {safe_id}", file=sys.stderr, flush=True)
+            print(f"[AUTO-PROCESS] Subject: {safe_subject}", file=sys.stderr, flush=True)
+            print(f"[AUTO-PROCESS] Category: {safe_label}", file=sys.stderr, flush=True)
+            print(f"[AUTO-PROCESS] Folder Move: {'SUCCESS' if label_success else 'FAILED'}", file=sys.stderr, flush=True)
+            print(f"[AUTO-PROCESS] Auto-Reply: {'SENT' if reply_sent else 'NOT SENT'}", file=sys.stderr, flush=True)
         except Exception:
-            print("[AUTO-PROCESS] Email procesado automaticamente")
-        print("=" * 80)
+            print("[AUTO-PROCESS] Email procesado automaticamente", file=sys.stderr, flush=True)
+        print("=" * 80, file=sys.stderr, flush=True)
         
     except Exception as e:
+        import sys
         try:
             safe_error = str(e).encode('ascii', 'ignore').decode('ascii')
-            print(f"[AUTO-PROCESS] Error procesando email automaticamente: {safe_error}")
+            print(f"[AUTO-PROCESS] Error procesando email automaticamente: {safe_error}", file=sys.stderr, flush=True)
         except Exception:
-            print("[AUTO-PROCESS] Error procesando email automaticamente")
+            print("[AUTO-PROCESS] Error procesando email automaticamente", file=sys.stderr, flush=True)
         import traceback
         try:
             traceback_str = traceback.format_exc()
             safe_traceback = traceback_str.encode('ascii', 'ignore').decode('ascii')
-            print(safe_traceback)
+            print(safe_traceback, file=sys.stderr, flush=True)
         except Exception:
-            traceback.print_exc()
+            traceback.print_exc(file=sys.stderr)
 
 
 def get_or_create_folder_id(access_token: str, display_name: str):
